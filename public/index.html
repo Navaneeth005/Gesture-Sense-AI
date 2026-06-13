@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Inference Hub Core</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=SF+Pro+Display:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Apple Dark Premium Color Space Definitions */
+            --bg-base: #000002;
+            --bg-surface: rgba(11, 11, 15, 0.75);
+            --bg-card-inner: rgba(255, 255, 255, 0.02);
+            --border-primary: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(0, 245, 255, 0.2);
+            
+            /* High-Fidelity Signal Emissive Variables */
+            --color-cyan: #00f5ff;
+            --color-purple: #9333ea;
+            --color-green: #10b981;
+            --color-magenta: #f43f5e;
+            
+            /* Structural Typography States */
+            --text-main: #f5f5f7;
+            --text-secondary: #86868b;
+            --text-muted: #424245;
+            
+            /* Motion Dynamics Constants */
+            --apple-transition: all 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            background-color: var(--bg-base);
+            background-image: 
+                radial-gradient(circle at 0% 0%, rgba(0, 245, 255, 0.03) 0%, transparent 40%),
+                radial-gradient(circle at 100% 100%, rgba(147, 51, 234, 0.03) 0%, transparent 40%);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 40px 24px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow-x: hidden;
+        }
+
+        .workspace-wrapper {
+            width: 100%;
+            max-width: 1240px;
+            display: flex;
+            flex-direction: column;
+            gap: 24px;
+        }
+
+        /* Top System Banner Header */
+        .system-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border-primary);
+        }
+
+        .header-title-block h1 {
+            font-size: 1.6rem;
+            font-weight: 600;
+            letter-spacing: -0.02em;
+            color: #ffffff;
+        }
+
+        .header-title-block p {
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            margin-top: 4px;
+        }
+
+        .system-status-badge {
+            font-size: 0.75rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(255, 255, 255, 0.03);
+            padding: 6px 14px;
+            border-radius: 99px;
+            border: 1px solid var(--border-primary);
+        }
+
+        .system-status-badge .status-dot {
+            width: 6px;
+            height: 6px;
+            background-color: var(--text-muted);
+            border-radius: 50%;
+            transition: var(--apple-transition);
+        }
+
+        .system-status-badge.active .status-dot {
+            background-color: var(--color-green);
+            box-shadow: 0 0 10px var(--color-green);
+        }
+
+        .system-status-badge.suspended .status-dot {
+            background-color: var(--color-magenta);
+            box-shadow: 0 0 10px var(--color-magenta);
+        }
+
+        /* Twin Column Processing Matrix Dashboard Layout */
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 24px;
+            align-items: stretch;
+        }
+
+        /* Apple Glassmorphic Interface Module Shells */
+        .glass-panel {
+            background: var(--bg-surface);
+            backdrop-filter: blur(40px) saturate(200%);
+            -webkit-backdrop-filter: blur(40px) saturate(200%);
+            border: 1px solid var(--border-primary);
+            border-radius: 24px;
+            padding: 28px;
+            box-shadow: 0 30px 60px rgba(0, 0, 0, 0.4);
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.4s ease;
+        }
+
+        .glass-panel-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            letter-spacing: 0.08em;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .glass-panel-title::before {
+            content: '';
+            display: inline-block;
+            width: 2px;
+            height: 10px;
+            background: var(--color-cyan);
+            border-radius: 99px;
+        }
+
+        /* Left Side Content - Signal Intercept Pipeline Components */
+        .signal-intercept-box {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            height: 100%;
+        }
+
+        .action-button-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 14px;
+        }
+
+        .control-trigger-btn {
+            width: 100%;
+            padding: 16px;
+            background: #ffffff;
+            border: 1px solid #ffffff;
+            border-radius: 14px;
+            color: #000000;
+            font-size: 0.9rem;
+            font-weight: 600;
+            letter-spacing: -0.01em;
+            cursor: pointer;
+            transition: var(--apple-transition);
+        }
+
+        .control-trigger-btn:hover:not(:disabled) {
+            background: transparent;
+            color: #ffffff;
+            border-color: var(--color-cyan);
+            box-shadow: 0 0 25px rgba(0, 245, 255, 0.15);
+        }
+
+        .control-trigger-btn:disabled {
+            background: rgba(255, 255, 255, 0.01);
+            color: var(--text-muted);
+            border-color: var(--border-primary);
+            pointer-events: none;
+            box-shadow: none;
+        }
+
+        .control-trigger-btn.stop-btn {
+            background: transparent;
+            color: var(--color-magenta);
+            border-color: rgba(244, 63, 94, 0.3);
+        }
+
+        .control-trigger-btn.stop-btn:hover:not(:disabled) {
+            background: rgba(244, 63, 94, 0.1);
+            border-color: var(--color-magenta);
+            box-shadow: 0 0 25px rgba(244, 63, 94, 0.2);
+        }
+
+        .canvas-viewport-housing {
+            background: #010103;
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            border-radius: 16px;
+            height: 280px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 4px 30px rgba(0, 0, 0, 0.7);
+            flex-grow: 1;
+        }
+
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .architecture-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+        }
+
+        .meta-badge {
+            background: rgba(255, 255, 255, 0.01);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            padding: 12px;
+            text-align: center;
+            font-size: 0.7rem;
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            border-radius: 10px;
+            text-transform: uppercase;
+            transition: var(--apple-transition);
+        }
+
+        .meta-badge.active-node {
+            border-color: rgba(0, 245, 255, 0.25);
+            color: var(--color-cyan);
+            background: rgba(0, 245, 255, 0.01);
+        }
+
+        /* Right Side Content - Inference Neural Core Engine Matrix Components */
+        .neural-processing-box {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            height: 100%;
+            justify-content: center;
+        }
+
+        .probability-vector-row {
+            background: var(--bg-card-inner);
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            border-radius: 14px;
+            padding: 20px 24px;
+            transition: var(--apple-transition);
+        }
+
+        .probability-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .probability-title {
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+            letter-spacing: -0.01em;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .probability-value {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.05rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            transition: var(--apple-transition);
+        }
+
+        .liquid-track-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .liquid-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 99px;
+            transition: width 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Dynamic Class States */
+        .probability-vector-row.dominant-signal {
+            border-color: rgba(147, 51, 234, 0.3);
+            background: rgba(147, 51, 234, 0.01);
+        }
+        .probability-vector-row.dominant-signal .probability-value {
+            color: #ffffff;
+        }
+
+        .fill-cyan { background: var(--color-cyan); box-shadow: 0 0 12px rgba(0, 245, 255, 0.4); }
+        .fill-purple { background: var(--color-purple); box-shadow: 0 0 12px rgba(147, 51, 234, 0.4); }
+        .fill-green { background: var(--color-green); box-shadow: 0 0 12px rgba(16, 185, 129, 0.4); }
+
+        /* Bottom Row Structure Block - Statistical Analytic Calculations */
+        .analytics-dashboard-panel {
+            gap: 24px;
+        }
+
+        .analytics-metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .metric-card {
+            background: var(--bg-card-inner);
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            border-radius: 14px;
+            padding: 20px;
+        }
+
+        .metric-label {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+            margin-bottom: 8px;
+        }
+
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: 400;
+            letter-spacing: -0.03em;
+            color: #ffffff;
+        }
+        .metric-value span { 
+            font-size: 0.75rem; 
+            font-weight: 500; 
+            margin-left: 4px; 
+            color: var(--text-secondary); 
+            letter-spacing: 0;
+        }
+
+        .txt-cyan { color: var(--color-cyan) !important; }
+        .txt-green { color: var(--color-green) !important; }
+
+        /* Multiaxial Variance Tracker Sub-Block Layout */
+        .axis-extremes-container {
+            border: 1px solid rgba(255, 255, 255, 0.02);
+            background: rgba(0, 0, 0, 0.15);
+            border-radius: 14px;
+            padding: 20px 24px;
+        }
+
+        .axis-container-heading {
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            letter-spacing: 0.04em;
+            margin-bottom: 16px;
+            text-transform: uppercase;
+        }
+
+        .axis-coordinate-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+        }
+
+        .axis-data-column {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .axis-tag-label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+        .tag-x { color: var(--color-cyan); }
+        .tag-y { color: var(--color-green); }
+        .tag-z { color: var(--color-magenta); }
+
+        .axis-numerical-readout {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            color: #ffffff;
+            font-weight: 400;
+        }
+
+        /* Bottom Layout Footer Meta Layer */
+        .system-footer-meta {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.7rem;
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            color: var(--text-muted);
+            border-top: 1px solid var(--border-primary);
+            padding-top: 24px;
+            text-transform: uppercase;
+        }
+
+        /* Responsive Adaptive Layout Configuration Profiles */
+        @media (max-width: 1024px) {
+            body { padding: 24px 16px; }
+            .dashboard-grid { grid-template-columns: 1fr; gap: 20px; }
+            .analytics-metrics-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+            .canvas-viewport-housing { height: 220px; }
+        }
+
+        @media (max-width: 640px) {
+            .system-header { flex-direction: column; align-items: flex-start; gap: 14px; }
+            .action-button-row { grid-template-columns: 1fr; gap: 10px; }
+            .analytics-metrics-grid { grid-template-columns: 1fr; }
+            .axis-coordinate-row { grid-template-columns: 1fr; gap: 14px; }
+            .glass-panel { padding: 20px; }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="workspace-wrapper">
+
+    <header class="system-header">
+        <div class="header-title-block">
+            <h1>Smart Motion Recognition System</h1>
+            <p>AI-Powered Gesture Detection Platform</p>
+        </div>
+        <div class="system-status-badge" id="statusBadge">
+            <div class="status-dot"></div>
+            <span id="statusTxt">SYSTEM READY</span>
+        </div>
+    </header>
+
+    <main class="dashboard-grid">
+        
+        <section class="glass-panel">
+            <h2 class="glass-panel-title">Signal Acquisition Pipeline</h2>
+            <div class="signal-intercept-box">
+                <div class="action-button-row">
+                    <button class="control-trigger-btn" id="startBtn">START SENSORS</button>
+                    <button class="control-trigger-btn stop-btn" id="stopBtn" disabled>STOP SENSORS</button>
+                </div>
+                
+                <div class="canvas-viewport-housing">
+                    <canvas id="waveCanvas"></canvas>
+                </div>
+
+                <div class="architecture-row">
+                    <div class="meta-badge" id="badgeApi">W3C LINEAR API</div>
+                    <div class="meta-badge" id="badgeMotion">HW ACCEL EVENT</div>
+                    <div class="meta-badge" id="badgeFilter">SW HP FILTER</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="glass-panel">
+            <h2 class="glass-panel-title">Neural Classification Matrix</h2>
+            <div class="neural-processing-box">
+                
+                <div class="probability-vector-row" id="row-circle">
+                    <div class="probability-meta">
+                        <div class="probability-title"><span>⟳</span> CIRCLE GESTURE</div>
+                        <div class="probability-value" id="circleVal">00.0%</div>
+                    </div>
+                    <div class="liquid-track-bar">
+                        <div class="liquid-fill fill-cyan" id="circleBar"></div>
+                    </div>
+                </div>
+
+                <div class="probability-vector-row" id="row-wave">
+                    <div class="probability-meta">
+                        <div class="probability-title"><span>⚡</span> WAVE GESTURE</div>
+                        <div class="probability-value" id="waveVal">00.0%</div>
+                    </div>
+                    <div class="liquid-track-bar">
+                        <div class="liquid-fill fill-purple" id="waveBar"></div>
+                    </div>
+                </div>
+
+                <div class="probability-vector-row" id="row-idle">
+                    <div class="probability-meta">
+                        <div class="probability-title"><span>⤍</span> IDLE STATE</div>
+                        <div class="probability-value" id="idleVal">00.0%</div>
+                    </div>
+                    <div class="liquid-track-bar">
+                        <div class="liquid-fill fill-green" id="idleBar"></div>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <footer class="glass-panel analytics-dashboard-panel">
+        <h2 class="glass-panel-title">Telemetry Analytics Metrics Engine</h2>
+        
+        <div class="analytics-metrics-grid">
+            <div class="metric-card">
+                <div class="metric-label">Operational Duration</div>
+                <div class="metric-value" id="lblDuration">0.00<span>sec</span></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Samples Quantized</div>
+                <div class="metric-value" id="lblSamples">0</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Peak Magnitude</div>
+                <div class="metric-value txt-cyan" id="lblPeak">0.000<span>m/s²</span></div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-label">Average Scalar Vector</div>
+                <div class="metric-value txt-green" id="lblAvg">0.000<span>m/s²</span></div>
+            </div>
+        </div>
+
+        <div class="axis-extremes-container">
+            <div class="axis-container-heading">Peak Geometric Extremes Array [ Maximum / Minimum ]</div>
+            <div class="axis-coordinate-row">
+                <div class="axis-data-column">
+                    <div class="axis-tag-label tag-x">X-Axis Vectors:</div>
+                    <div class="axis-numerical-readout" id="lblXAxis">0.00 / 0.00</div>
+                </div>
+                <div class="axis-data-column">
+                    <div class="axis-tag-label tag-y">Y-Axis Vectors:</div>
+                    <div class="axis-numerical-readout" id="lblYAxis">0.00 / 0.00</div>
+                </div>
+                <div class="axis-data-column">
+                    <div class="axis-tag-label tag-z">Z-Axis Vectors:</div>
+                    <div class="axis-numerical-readout" id="lblZAxis">0.00 / 0.00</div>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <div class="system-footer-meta">
+        Developed by Navaneeth P • Smart Motion Recognition System
+    </div>
+</div>
+
+<script src="edge-impulse-standalone.js"></script>
+<script src="run-impulse.js"></script>
+
+<script>
+    // System Constants Configuration parameters
+    const FEATURE_SIZE = 375;
+    let classifier;
+    
+    // Low-Latency Inference Stream Processing Buffers
+    let featureBuffer = [];
+    let canvasHistory = { x: [], y: [], z: [] };
+
+    // Hardware Sensor References for tearing down event systems cleanly
+    let activeHardwareSensor = null;
+    let motionDeviceEventListener = null;
+
+    // Async Runtime Execution Loop Intervals handles
+    let metricCalculationInterval = null;
+    let intelligenceInferenceInterval = null;
+
+    // Dynamic Tracking Metric Context Variables
+    let executionStartTime = null;
+    let totalSuspendedAccumulatedTime = 0;
+    let activeStreamStatus = false;
+    let currentMotionMagnitude = 0;
+    let idleCounter = 0;
+    let predictionHistory = [];
+    const HISTORY_SIZE = 7;
+    let mathematicalMetrics = {
+        peakAcc: 0,
+        sumAcc: 0,
+        count: 0,
+        xMax: -99, xMin: 99,
+        yMax: -99, yMin: 99,
+        zMax: -99, zMin: 99
+    };
+
+    // DOM References Initialization mapping links
+    const canvas = document.getElementById("waveCanvas");
+    const ctx = canvas.getContext("2d");
+    const startBtn = document.getElementById("startBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const statusBadge = document.getElementById("statusBadge");
+    const statusTxt = document.getElementById("statusTxt");
+
+    // HDPI Resolution Handler Context Engine for Crisp High-Res Display Scaling
+    function syncCanvasProportions() {
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width * window.devicePixelRatio;
+        canvas.height = rect.height * window.devicePixelRatio;
+        ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    }
+
+    // Connect memory matrices with local WebAssembly instance 
+    async function initModelCorePipeline() {
+        try {
+            classifier = new EdgeImpulseClassifier();
+            await classifier.init();
+            console.log("Edge Impulse classification architecture compiled into runtime workspace allocations.");
+        } catch(faultContext) {
+            console.error("WebAssembly inference node failed to construct accurately:", faultContext);
+        }
+    }
+
+    // Dynamic probability bar visualization state mapping rules
+    function pushProbabilityVector(targetLabel, targetValue) {
+        const structuralPercentage = (targetValue * 100).toFixed(1);
+        const lowcaseLabel = targetLabel.toLowerCase();
+        
+        let barDom, textDom, containerDom;
+
+        if (lowcaseLabel.includes("circle")) {
+            barDom = document.getElementById("circleBar");
+            textDom = document.getElementById("circleVal");
+            containerDom = document.getElementById("row-circle");
+        } else if (lowcaseLabel.includes("wave")) {
+            barDom = document.getElementById("waveBar");
+            textDom = document.getElementById("waveVal");
+            containerDom = document.getElementById("row-wave");
+        } else if (lowcaseLabel.includes("idle")) {
+            barDom = document.getElementById("idleBar");
+            textDom = document.getElementById("idleVal");
+            containerDom = document.getElementById("row-idle");
+        }
+
+        if (barDom && textDom) {
+            barDom.style.width = structuralPercentage + "%";
+            textDom.innerText = structuralPercentage + "%";
+            
+            // Toggle highlight accents based on confidence probability threshold calculations
+            if (targetValue > 0.55) {
+                containerDom.classList.add("dominant-signal");
+            } else {
+                containerDom.classList.remove("dominant-signal");
+            }
+        }
+    }
+
+    // Primary real-time background classification execution loop
+    function evaluateInferenceBuffers() {
+        if (!classifier) return;
+        if (!activeStreamStatus) return;
+        if (featureBuffer.length < FEATURE_SIZE) return;
+
+        // HARD IDLE DETECTION
+        if (idleCounter > 40) {
+            pushProbabilityVector("circle", 0);
+            pushProbabilityVector("wave", 0);
+            pushProbabilityVector("idle", 1);
+            return;
+        }
+
+        const localizedFeatures = featureBuffer.slice(-FEATURE_SIZE);
+
+        try {
+            const inferenceResult = classifier.classify(localizedFeatures);
+            if (!inferenceResult || !inferenceResult.results) return;
+
+            let bestLabel = "idle";
+            let bestScore = 0;
+
+            inferenceResult.results.forEach(result => {
+                if (result.value > bestScore) {
+                    bestScore = result.value;
+                    bestLabel = result.label;
+                }
+            });
+
+            // Confidence threshold
+            if (bestScore < 0.80) {
+                bestLabel = "idle";
+            }
+
+            predictionHistory.push(bestLabel);
+
+            if (predictionHistory.length > HISTORY_SIZE) {
+                predictionHistory.shift();
+            }
+
+            const counts = {};
+            predictionHistory.forEach(item => {
+                counts[item] = (counts[item] || 0) + 1;
+            });
+
+            let finalLabel = "idle";
+            let maxVotes = 0;
+
+            Object.keys(counts).forEach(key => {
+                if (counts[key] > maxVotes) {
+                    maxVotes = counts[key];
+                    finalLabel = key;
+                }
+            });
+
+            if (finalLabel.toLowerCase().includes("circle")) {
+                pushProbabilityVector("circle", 1);
+                pushProbabilityVector("wave", 0);
+                pushProbabilityVector("idle", 0);
+            } else if (finalLabel.toLowerCase().includes("wave")) {
+                pushProbabilityVector("circle", 0);
+                pushProbabilityVector("wave", 1);
+                pushProbabilityVector("idle", 0);
+            } else {
+                pushProbabilityVector("circle", 0);
+                pushProbabilityVector("wave", 0);
+                pushProbabilityVector("idle", 1);
+            }
+        } catch(error) {
+            console.error(error);
+        }
+    }
+
+    // Inject data directly into rolling data structures
+    function pipeTelemetryStream(x, y, z) {
+        if (!activeStreamStatus) return;
+
+        // Queue data structures onto feature registers
+        featureBuffer.push(x, y, z);
+        while (featureBuffer.length > FEATURE_SIZE) featureBuffer.shift();
+
+        // Feed data sequences into localized visualization tracking arrays
+        canvasHistory.x.push(x);
+        canvasHistory.y.push(y);
+        canvasHistory.z.push(z);
+        if (canvasHistory.x.length > 200) {
+            canvasHistory.x.shift();
+            canvasHistory.y.shift();
+            canvasHistory.z.shift();
+        }
+
+        // Aggregate running statistical configurations
+        const accelerationVectorMagnitude = Math.sqrt(x*x + y*y + z*z);
+        currentMotionMagnitude = accelerationVectorMagnitude;
+        
+        if (accelerationVectorMagnitude < 5) {
+            idleCounter++;
+        } else {
+            idleCounter = 0;
+        }
+
+        mathematicalMetrics.count++;
+        mathematicalMetrics.sumAcc += accelerationVectorMagnitude;
+
+        if (accelerationVectorMagnitude > mathematicalMetrics.peakAcc) {
+            mathematicalMetrics.peakAcc = accelerationVectorMagnitude;
+        }
+
+        // Record boundaries metrics calculations
+        if (x > mathematicalMetrics.xMax) mathematicalMetrics.xMax = x; if (x < mathematicalMetrics.xMin) mathematicalMetrics.xMin = x;
+        if (y > mathematicalMetrics.yMax) mathematicalMetrics.yMax = y; if (y < mathematicalMetrics.yMin) mathematicalMetrics.yMin = y;
+        if (z > mathematicalMetrics.zMax) mathematicalMetrics.zMax = z; if (z < mathematicalMetrics.zMin) mathematicalMetrics.zMin = z;
+    }
+
+    // High-Performance Graphics Trace Execution Pipeline
+    function runGraphicsTrace() {
+        const traceWidth = canvas.width / window.devicePixelRatio;
+        const traceHeight = canvas.height / window.devicePixelRatio;
+        ctx.clearRect(0, 0, traceWidth, traceHeight);
+
+        // Subdued Center Baseline Marker 
+        ctx.strokeStyle = "rgba(255, 255, 255, 0.02)";
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(0, traceHeight / 2);
+        ctx.lineTo(traceWidth, traceHeight / 2);
+        ctx.stroke();
+
+        const dataBufferLength = canvasHistory.x.length;
+        if (dataBufferLength > 1 && activeStreamStatus) {
+            const executePathRendering = (axisBuffer, pathHexColor) => {
+                ctx.beginPath();
+                for (let idx = 0; idx < dataBufferLength; idx++) {
+                    const mappedX = (idx / (200 - 1)) * traceWidth;
+                    const mappedY = (traceHeight / 2) - (axisBuffer[idx] * 12); // Amplification scale tracking coefficient
+                    
+                    if (idx === 0) ctx.moveTo(mappedX, mappedY);
+                    else ctx.lineTo(mappedX, mappedY);
+                }
+                ctx.strokeStyle = pathHexColor;
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+            };
+
+            // Process separate axis rendering vectors sequentially
+            executePathRendering(canvasHistory.x, "#00f5ff"); // X Vector : Cyan
+            executePathRendering(canvasHistory.y, "#10b981"); // Y Vector : Green
+            executePathRendering(canvasHistory.z, "#f43f5e"); // Z Vector : Magenta
+        }
+
+        requestAnimationFrame(runGraphicsTrace);
+    }
+
+    // Initialize Telemetry Hardware Connection Layer
+    async function bindHardwarePeripherals() {
+        activeStreamStatus = true;
+        statusBadge.classList.remove("suspended");
+        statusBadge.classList.add("active");
+        statusTxt.innerText = "STREAMING ACTIVE";
+
+        executionStartTime = Date.now() - totalSuspendedAccumulatedTime;
+        
+        if (window.LinearAccelerationSensor) {
+            activeHardwareSensor = new LinearAccelerationSensor({ frequency: 62.5 });
+            activeHardwareSensor.addEventListener("reading", () => {
+                pipeTelemetryStream(activeHardwareSensor.x || 0, activeHardwareSensor.y || 0, activeHardwareSensor.z || 0);
+            });
+            activeHardwareSensor.start();
+            document.getElementById("badgeApi").classList.add("active-node");
+        } else {
+            motionDeviceEventListener = (deviceEvent) => {
+                let dynamicAccelerationMatrix = deviceEvent.acceleration || deviceEvent.accelerationIncludingGravity;
+                if (dynamicAccelerationMatrix) {
+                    pipeTelemetryStream(dynamicAccelerationMatrix.x || 0, dynamicAccelerationMatrix.y || 0, dynamicAccelerationMatrix.z || 0);
+                }
+            };
+            window.addEventListener("devicemotion", motionDeviceEventListener);
+            document.getElementById("badgeMotion").classList.add("active-node");
+        }
+
+        document.getElementById("badgeFilter").classList.add("active-node");
+
+        // Toggle Interactivity Action Buttons states
+        startBtn.disabled = true;
+        startBtn.innerText = "PIPELINE ACTIVE";
+        stopBtn.disabled = false;
+
+        // Start interval metrics rendering tracking loops
+        metricCalculationInterval = setInterval(() => {
+            const calculationElapsedSeconds = ((Date.now() - executionStartTime) / 1000).toFixed(2);
+            document.getElementById("lblDuration").innerText = calculationElapsedSeconds;
+            document.getElementById("lblSamples").innerText = mathematicalMetrics.count;
+            document.getElementById("lblPeak").innerText = mathematicalMetrics.peakAcc.toFixed(3);
+            document.getElementById("lblAvg").innerText = mathematicalMetrics.count > 0 ? (mathematicalMetrics.sumAcc / mathematicalMetrics.count).toFixed(3) : "0.000";
+            
+            document.getElementById("lblXAxis").innerText = `${mathematicalMetrics.xMax.toFixed(2)} / ${mathematicalMetrics.xMin.toFixed(2)}`;
+            document.getElementById("lblYAxis").innerText = `${mathematicalMetrics.yMax.toFixed(2)} / ${mathematicalMetrics.yMin.toFixed(2)}`;
+            document.getElementById("lblZAxis").innerText = `${mathematicalMetrics.zMax.toFixed(2)} / ${mathematicalMetrics.zMin.toFixed(2)}`;
+        }, 100);
+
+        // Connect prediction loop interval processing schedules
+        intelligenceInferenceInterval = setInterval(evaluateInferenceBuffers, 250);
+    }
+
+    // Teardown and Suspend Hardware Stream Pipelines safely
+    function disconnectHardwarePeripherals() {
+        activeStreamStatus = false;
+        
+        // Track elapsed execution timeline to persist timer context states cleanly if restarted
+        if (executionStartTime) {
+            totalSuspendedAccumulatedTime = Date.now() - executionStartTime;
+        }
+
+        // Terminate background polling loops
+        clearInterval(metricCalculationInterval);
+        clearInterval(intelligenceInferenceInterval);
+
+        // Terminate Native Sensors APIs
+        if (activeHardwareSensor) {
+            activeHardwareSensor.stop();
+            activeHardwareSensor = null;
+        }
+        // Tear down legacy Event Listeners fallback hooks
+        if (motionDeviceEventListener) {
+            window.removeEventListener("devicemotion", motionDeviceEventListener);
+            motionDeviceEventListener = null;
+        }
+
+        // Reset badge structural elements
+        document.getElementById("badgeApi").classList.remove("active-node");
+        document.getElementById("badgeMotion").classList.remove("active-node");
+        document.getElementById("badgeFilter").classList.remove("active-node");
+        
+        statusBadge.classList.remove("active");
+        statusBadge.classList.add("suspended");
+        statusTxt.innerText = "STREAM SUSPENDED";
+
+        // Restore button visibility triggers
+        startBtn.disabled = false;
+        startBtn.innerText = "RESUME SENSORS";
+        stopBtn.disabled = true;
+
+        // Reset visual variables
+        idleCounter = 0;
+        predictionHistory = [];
+
+        // Reset neural confidence progress rows visually upon shutdown
+        pushProbabilityVector("circle", 0);
+        pushProbabilityVector("wave", 0);
+        pushProbabilityVector("idle", 0);
+    }
+
+    // System Button Click Event Logic Routing Control Link
+    startBtn.addEventListener("click", async () => {
+        try {
+            if (typeof DeviceMotionEvent !== "undefined" && typeof DeviceMotionEvent.requestPermission === "function") {
+                const operationalPermissionState = await DeviceMotionEvent.requestPermission();
+                if (operationalPermissionState !== "granted") {
+                    alert("Hardware Interface Halted: Internal device permissions denied.");
+                    return;
+                }
+            }
+            await bindHardwarePeripherals();
+        } catch(peripheralFault) {
+            alert("Unexpected Device Layer Exception Profile Captured: " + peripheralFault.message);
+        }
+    });
+
+    // Stop Event Listeners Configuration
+    stopBtn.addEventListener("click", () => {
+        disconnectHardwarePeripherals();
+    });
+
+    // Device Scaling Handler Map Setup Link
+    window.addEventListener('resize', syncCanvasProportions);
+    
+    // Core Engine Deployment Script execution routines
+    syncCanvasProportions();
+    runGraphicsTrace();
+    initModelCorePipeline();
+</script>
+
+</body>
+</html>
